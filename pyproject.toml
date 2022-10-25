@@ -1,3 +1,29 @@
+[project]
+name = "pferd"
+dynamic = ["version"]
+authors = [
+    { name="Garmelon", email="joscha@plugh.de" }
+]
+description = "Programm zum Flotten Einfachen Runterladen von Dateien"
+readme = "README.md"
+license = {file = "LICENSE"}
+requires-python = ">=3.9"
+dependencies = [
+    "aiohttp>=3.8.1",
+    "beautifulsoup4>=4.10.0",
+    "rich>=11.0.0",
+    "keyring>=23.5.0",
+    "certifi>=2021.10.8"
+]
+
+[tool.setuptools.dynamic]
+version = {attr = "PFERD.version.VERSION"}
+
+[project.urls]
+"Homepage" = "https://github.com/Garmelon/PFERD"
+"Bug Tracker" = "https://github.com/Garmelon/PFERD/issues"
+"Source" = "https://github.com/Garmelon/PFERD"
+
 [build-system]
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
