@@ -13,7 +13,12 @@ from typing import BinaryIO, Iterator, Optional, Tuple
 
 from .logging import log
 from .report import Report, ReportLoadError
-from .utils import ReusableAsyncContextManager, fmt_path, fmt_real_path, prompt_yes_no
+from .utils import (
+    ReusableAsyncContextManager,
+    fmt_path,
+    fmt_real_path,
+    prompt_yes_no,
+)
 
 SUFFIX_CHARS = string.ascii_lowercase + string.digits
 SUFFIX_LENGTH = 6
@@ -35,8 +40,7 @@ class Redownload(Enum):
         try:
             return Redownload(string)
         except ValueError:
-            raise ValueError("must be one of 'never', 'never-smart',"
-                             " 'always', 'always-smart'")
+            raise ValueError("must be one of 'never', 'never-smart'," " 'always', 'always-smart'")
 
 
 class OnConflict(Enum):
@@ -51,8 +55,10 @@ class OnConflict(Enum):
         try:
             return OnConflict(string)
         except ValueError:
-            raise ValueError("must be one of 'prompt', 'local-first',"
-                             " 'remote-first', 'no-delete', 'no-delete-prompt-overwrite'")
+            raise ValueError(
+                "must be one of 'prompt', 'local-first',"
+                " 'remote-first', 'no-delete', 'no-delete-prompt-overwrite'"
+            )
 
 
 @dataclass
@@ -95,13 +101,13 @@ class FileSinkToken(ReusableAsyncContextManager[FileSink]):
     # download handed back to the OutputDirectory.
 
     def __init__(
-            self,
-            output_dir: "OutputDirectory",
-            remote_path: PurePath,
-            path: PurePath,
-            local_path: Path,
-            heuristics: Heuristics,
-            on_conflict: OnConflict,
+        self,
+        output_dir: "OutputDirectory",
+        remote_path: PurePath,
+        path: PurePath,
+        local_path: Path,
+        heuristics: Heuristics,
+        on_conflict: OnConflict,
     ):
         super().__init__()
 
@@ -117,15 +123,17 @@ class FileSinkToken(ReusableAsyncContextManager[FileSink]):
         sink = FileSink(file)
 
         async def after_download() -> None:
-            await self._output_dir._after_download(DownloadInfo(
-                self._remote_path,
-                self._path,
-                self._local_path,
-                tmp_path,
-                self._heuristics,
-                self._on_conflict,
-                sink.is_done(),
-            ))
+            await self._output_dir._after_download(
+                DownloadInfo(
+                    self._remote_path,
+                    self._path,
+                    self._local_path,
+                    tmp_path,
+                    self._heuristics,
+                    self._on_conflict,
+                    sink.is_done(),
+                )
+            )
 
         self._stack.push_async_callback(after_download)
         self._stack.enter_context(file)
@@ -137,10 +145,10 @@ class OutputDirectory:
     REPORT_FILE = PurePath(".report")
 
     def __init__(
-            self,
-            root: Path,
-            redownload: Redownload,
-            on_conflict: OnConflict,
+        self,
+        root: Path,
+        redownload: Redownload,
+        on_conflict: OnConflict,
     ):
         if os.name == "nt":
             # Windows limits the path length to 260 for some historical reason.
@@ -192,11 +200,11 @@ class OutputDirectory:
         return self._root / path
 
     def _should_download(
-            self,
-            local_path: Path,
-            heuristics: Heuristics,
-            redownload: Redownload,
-            on_conflict: OnConflict,
+        self,
+        local_path: Path,
+        heuristics: Heuristics,
+        redownload: Redownload,
+        on_conflict: OnConflict,
     ) -> bool:
         if not local_path.exists():
             log.explain("No corresponding file present locally")
@@ -261,11 +269,14 @@ class OutputDirectory:
     # files.
 
     async def _conflict_lfrf(
-            self,
-            on_conflict: OnConflict,
-            path: PurePath,
+        self,
+        on_conflict: OnConflict,
+        path: PurePath,
     ) -> bool:
-        if on_conflict in {OnConflict.PROMPT, OnConflict.NO_DELETE_PROMPT_OVERWRITE}:
+        if on_conflict in {
+            OnConflict.PROMPT,
+            OnConflict.NO_DELETE_PROMPT_OVERWRITE,
+        }:
             async with log.exclusive_output():
                 prompt = f"Replace {fmt_path(path)} with remote file?"
                 return await prompt_yes_no(prompt, default=False)
@@ -280,11 +291,14 @@ class OutputDirectory:
         raise ValueError(f"{on_conflict!r} is not a valid conflict policy")
 
     async def _conflict_ldrf(
-            self,
-            on_conflict: OnConflict,
-            path: PurePath,
+        self,
+        on_conflict: OnConflict,
+        path: PurePath,
     ) -> bool:
-        if on_conflict in {OnConflict.PROMPT, OnConflict.NO_DELETE_PROMPT_OVERWRITE}:
+        if on_conflict in {
+            OnConflict.PROMPT,
+            OnConflict.NO_DELETE_PROMPT_OVERWRITE,
+        }:
             async with log.exclusive_output():
                 prompt = f"Recursively delete {fmt_path(path)} and replace with remote file?"
                 return await prompt_yes_no(prompt, default=False)
@@ -299,12 +313,15 @@ class OutputDirectory:
         raise ValueError(f"{on_conflict!r} is not a valid conflict policy")
 
     async def _conflict_lfrd(
-            self,
-            on_conflict: OnConflict,
-            path: PurePath,
-            parent: PurePath,
+        self,
+        on_conflict: OnConflict,
+        path: PurePath,
+        parent: PurePath,
     ) -> bool:
-        if on_conflict in {OnConflict.PROMPT, OnConflict.NO_DELETE_PROMPT_OVERWRITE}:
+        if on_conflict in {
+            OnConflict.PROMPT,
+            OnConflict.NO_DELETE_PROMPT_OVERWRITE,
+        }:
             async with log.exclusive_output():
                 prompt = f"Delete {fmt_path(parent)} so remote file {fmt_path(path)} can be downloaded?"
                 return await prompt_yes_no(prompt, default=False)
@@ -319,9 +336,9 @@ class OutputDirectory:
         raise ValueError(f"{on_conflict!r} is not a valid conflict policy")
 
     async def _conflict_delete_lf(
-            self,
-            on_conflict: OnConflict,
-            path: PurePath,
+        self,
+        on_conflict: OnConflict,
+        path: PurePath,
     ) -> bool:
         if on_conflict == OnConflict.PROMPT:
             async with log.exclusive_output():
@@ -331,7 +348,10 @@ class OutputDirectory:
             return False
         elif on_conflict == OnConflict.REMOTE_FIRST:
             return True
-        elif on_conflict in {OnConflict.NO_DELETE, OnConflict.NO_DELETE_PROMPT_OVERWRITE}:
+        elif on_conflict in {
+            OnConflict.NO_DELETE,
+            OnConflict.NO_DELETE_PROMPT_OVERWRITE,
+        }:
             return False
 
         # This should never be reached
@@ -344,8 +364,8 @@ class OutputDirectory:
         return base.parent / name
 
     async def _create_tmp_file(
-            self,
-            local_path: Path,
+        self,
+        local_path: Path,
     ) -> Tuple[Path, BinaryIO]:
         """
         May raise an OutputDirError.
@@ -363,12 +383,12 @@ class OutputDirectory:
         raise OutputDirError("Failed to create temporary file")
 
     async def download(
-            self,
-            remote_path: PurePath,
-            path: PurePath,
-            mtime: Optional[datetime] = None,
-            redownload: Optional[Redownload] = None,
-            on_conflict: Optional[OnConflict] = None,
+        self,
+        remote_path: PurePath,
+        path: PurePath,
+        mtime: Optional[datetime] = None,
+        redownload: Optional[Redownload] = None,
+        on_conflict: Optional[OnConflict] = None,
     ) -> Optional[FileSinkToken]:
         """
         May throw an OutputDirError, a MarkDuplicateError or a
@@ -504,7 +524,12 @@ class OutputDirectory:
         try:
             self._prev_report = Report.load(self._report_path)
             log.explain("Loaded report successfully")
-        except (OSError, UnicodeDecodeError, json.JSONDecodeError, ReportLoadError) as e:
+        except (
+            OSError,
+            UnicodeDecodeError,
+            json.JSONDecodeError,
+            ReportLoadError,
+        ) as e:
             log.explain("Failed to load report")
             log.explain(str(e))
 

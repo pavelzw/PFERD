@@ -4,14 +4,31 @@ from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Coroutine
 from datetime import datetime
 from pathlib import Path, PurePath
-from typing import Any, Callable, Dict, List, Optional, Sequence, Set, Tuple, TypeVar
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Sequence,
+    Set,
+    Tuple,
+    TypeVar,
+)
 
 from ..auth import Authenticator
 from ..config import Config, Section
 from ..deduplicator import Deduplicator
 from ..limiter import Limiter
 from ..logging import ProgressBar, log
-from ..output_dir import FileSink, FileSinkToken, OnConflict, OutputDirectory, OutputDirError, Redownload
+from ..output_dir import (
+    FileSink,
+    FileSinkToken,
+    OnConflict,
+    OutputDirectory,
+    OutputDirError,
+    Redownload,
+)
 from ..report import MarkConflictError, MarkDuplicateError, Report
 from ..transformer import Transformer
 from ..utils import ReusableAsyncContextManager, fmt_path
@@ -47,7 +64,12 @@ def noncritical(f: Wrapped) -> Wrapped:
 
         try:
             f(*args, **kwargs)
-        except (CrawlWarning, OutputDirError, MarkDuplicateError, MarkConflictError) as e:
+        except (
+            CrawlWarning,
+            OutputDirError,
+            MarkDuplicateError,
+            MarkConflictError,
+        ) as e:
             crawler.report.add_warning(str(e))
             log.warn(str(e))
             crawler.error_free = False
@@ -83,7 +105,12 @@ def anoncritical(f: AWrapped) -> AWrapped:
 
         try:
             return await f(*args, **kwargs)
-        except (CrawlWarning, OutputDirError, MarkDuplicateError, MarkConflictError) as e:
+        except (
+            CrawlWarning,
+            OutputDirError,
+            MarkDuplicateError,
+            MarkConflictError,
+        ) as e:
             log.warn(str(e))
             crawler.error_free = False
             crawler.report.add_warning(str(e))
@@ -132,8 +159,9 @@ class DownloadToken(ReusableAsyncContextManager[Tuple[ProgressBar, FileSink]]):
         await self._stack.enter_async_context(self._limiter.limit_download())
         sink = await self._stack.enter_async_context(self._fs_token)
         # The "Downloaded ..." message is printed in the output dir, not here
-        bar = self._stack.enter_context(log.download_bar("[bold bright_cyan]", "Downloading",
-                                                         fmt_path(self._path)))
+        bar = self._stack.enter_context(
+            log.download_bar("[bold bright_cyan]", "Downloading", fmt_path(self._path))
+        )
 
         return bar, sink
 
@@ -151,7 +179,7 @@ class CrawlerSection(Section):
     def output_dir(self, name: str) -> Path:
         # TODO Use removeprefix() after switching to 3.9
         if name.startswith("crawl:"):
-            name = name[len("crawl:"):]
+            name = name[len("crawl:") :]
         return Path(self.s.get("output_dir", name)).expanduser()
 
     def redownload(self) -> Redownload:
@@ -218,10 +246,10 @@ class CrawlerSection(Section):
 
 class Crawler(ABC):
     def __init__(
-            self,
-            name: str,
-            section: CrawlerSection,
-            config: Config,
+        self,
+        name: str,
+        section: CrawlerSection,
+        config: Config,
     ) -> None:
         """
         Initialize a crawler from its name and its section in the config file.
@@ -291,11 +319,11 @@ class Crawler(ABC):
         return CrawlToken(self._limiter, path)
 
     async def download(
-            self,
-            path: PurePath,
-            mtime: Optional[datetime] = None,
-            redownload: Optional[Redownload] = None,
-            on_conflict: Optional[OnConflict] = None,
+        self,
+        path: PurePath,
+        mtime: Optional[datetime] = None,
+        redownload: Optional[Redownload] = None,
+        on_conflict: Optional[OnConflict] = None,
     ) -> Optional[DownloadToken]:
         log.explain_topic(f"Decision: Download {fmt_path(path)}")
         path = self._deduplicator.mark(path)

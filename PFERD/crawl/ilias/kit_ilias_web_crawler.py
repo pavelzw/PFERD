@@ -4,7 +4,17 @@ import os
 import re
 from collections.abc import Awaitable, Coroutine
 from pathlib import PurePath
-from typing import Any, Callable, Dict, List, Literal, Optional, Set, Union, cast
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    Literal,
+    Optional,
+    Set,
+    Union,
+    cast,
+)
 from urllib.parse import urljoin
 
 import aiohttp
@@ -12,24 +22,38 @@ import yarl
 from aiohttp import hdrs
 from bs4 import BeautifulSoup, Tag
 
-from .file_templates import Links, learning_module_template
-from .ilias_html_cleaner import clean, insert_base_markup
-from .kit_ilias_html import (IliasElementType, IliasForumThread, IliasLearningModulePage, IliasPage,
-                             IliasPageElement, _sanitize_path_name, parse_ilias_forum_export)
-from ..crawler import AWrapped, CrawlError, CrawlToken, CrawlWarning, DownloadToken, anoncritical
-from ..http_crawler import HttpCrawler, HttpCrawlerSection
 from ...auth import Authenticator, TfaAuthenticator
 from ...config import Config
 from ...logging import ProgressBar, log
 from ...output_dir import FileSink, Redownload
 from ...utils import fmt_path, soupify, url_set_query_param
+from ..crawler import (
+    AWrapped,
+    CrawlError,
+    CrawlToken,
+    CrawlWarning,
+    DownloadToken,
+    anoncritical,
+)
+from ..http_crawler import HttpCrawler, HttpCrawlerSection
+from .file_templates import Links, learning_module_template
+from .ilias_html_cleaner import clean, insert_base_markup
+from .kit_ilias_html import (
+    IliasElementType,
+    IliasForumThread,
+    IliasLearningModulePage,
+    IliasPage,
+    IliasPageElement,
+    _sanitize_path_name,
+    parse_ilias_forum_export,
+)
 
 TargetType = Union[str, int]
 
 _ILIAS_URL = "https://ilias.studium.kit.edu"
 
 
-class KitShibbolethBackgroundLoginSuccessful():
+class KitShibbolethBackgroundLoginSuccessful:
     pass
 
 
@@ -176,23 +200,26 @@ def _get_video_cache_key(element: IliasPageElement) -> str:
 #  |
 #  +> stream_from_url         # Handles and retries authentication
 
+
 class KitIliasWebCrawler(HttpCrawler):
     def __init__(
         self,
         name: str,
         section: KitIliasWebCrawlerSection,
         config: Config,
-        authenticators: Dict[str, Authenticator]
+        authenticators: Dict[str, Authenticator],
     ):
         # Setting a main authenticator for cookie sharing
         auth = section.auth(authenticators)
         super().__init__(name, section, config, shared_auth=auth)
 
         if section.tasks() > 1:
-            log.warn("""
+            log.warn(
+                """
 Please avoid using too many parallel requests as these are the KIT ILIAS
 instance's greatest bottleneck.
-            """.strip())
+            """.strip()
+            )
 
         self._shibboleth_login = KitShibbolethLogin(
             auth,
@@ -221,9 +248,7 @@ instance's greatest bottleneck.
 
     async def _crawl_course(self, course_id: int) -> None:
         # Start crawling at the given course
-        root_url = url_set_query_param(
-            self._base_url + "/goto.php", "target", f"crs_{course_id}"
-        )
+        root_url = url_set_query_param(self._base_url + "/goto.php", "target", f"crs_{course_id}")
 
         await self._crawl_url(root_url, expected_id=course_id)
 
@@ -376,7 +401,7 @@ instance's greatest bottleneck.
                     "[bold bright_black]",
                     "Ignored",
                     fmt_path(element_path),
-                    "[bright_black](enable with option 'videos')"
+                    "[bright_black](enable with option 'videos')",
                 )
                 return None
 
@@ -388,7 +413,7 @@ instance's greatest bottleneck.
                     "[bold bright_black]",
                     "Ignored",
                     fmt_path(element_path),
-                    "[bright_black](enable with option 'forums')"
+                    "[bright_black](enable with option 'forums')",
                 )
                 return None
             return await self._handle_forum(element, element_path)
@@ -397,7 +422,7 @@ instance's greatest bottleneck.
                 "[bold bright_black]",
                 "Ignored",
                 fmt_path(element_path),
-                "[bright_black](tests contain no relevant data)"
+                "[bright_black](tests contain no relevant data)",
             )
             return None
         elif element.type == IliasElementType.SURVEY:
@@ -405,7 +430,7 @@ instance's greatest bottleneck.
                 "[bold bright_black]",
                 "Ignored",
                 fmt_path(element_path),
-                "[bright_black](surveys contain no relevant data)"
+                "[bright_black](surveys contain no relevant data)",
             )
             return None
         elif element.type == IliasElementType.SCORM_LEARNING_MODULE:
@@ -413,7 +438,7 @@ instance's greatest bottleneck.
                 "[bold bright_black]",
                 "Ignored",
                 fmt_path(element_path),
-                "[bright_black](scorm learning modules are not supported)"
+                "[bright_black](scorm learning modules are not supported)",
             )
             return None
         elif element.type == IliasElementType.LEARNING_MODULE:
@@ -527,7 +552,13 @@ instance's greatest bottleneck.
         dl: DownloadToken,
     ) -> None:
         async with dl as (bar, sink):
-            self._write_link_content(link_template, element.url, element.name, element.description, sink)
+            self._write_link_content(
+                link_template,
+                element.url,
+                element.name,
+                element.description,
+                sink,
+            )
 
     async def _resolve_link_target(self, export_url: str) -> str:
         async with self.session.get(export_url, allow_redirects=False) as resp:
@@ -553,7 +584,7 @@ instance's greatest bottleneck.
         if self.prev_report:
             self.report.add_custom_value(
                 _get_video_cache_key(element),
-                self.prev_report.get_custom_value(_get_video_cache_key(element))
+                self.prev_report.get_custom_value(_get_video_cache_key(element)),
             )
 
         # A video might contain other videos, so let's "crawl" the video first
@@ -623,7 +654,10 @@ instance's greatest bottleneck.
         def add_to_report(paths: list[str]) -> None:
             self.report.add_custom_value(
                 _get_video_cache_key(element),
-                {"known_paths": paths, "own_path": str(self._transformer.transform(dl.path))}
+                {
+                    "known_paths": paths,
+                    "own_path": str(self._transformer.transform(dl.path)),
+                },
             )
 
         async with dl as (bar, sink):
@@ -789,13 +823,13 @@ instance's greatest bottleneck.
             soup = await self._get_page(element.url)
             page = IliasPage(soup, element.url, element)
             if next := page.get_learning_module_data():
-                elements.extend(await self._crawl_learning_module_direction(
-                    cl.path, next.previous_url, "left", element
-                ))
+                elements.extend(
+                    await self._crawl_learning_module_direction(cl.path, next.previous_url, "left", element)
+                )
                 elements.append(next)
-                elements.extend(await self._crawl_learning_module_direction(
-                    cl.path, next.next_url, "right", element
-                ))
+                elements.extend(
+                    await self._crawl_learning_module_direction(cl.path, next.next_url, "right", element)
+                )
 
         # Reflect their natural ordering in the file names
         for index, lm_element in enumerate(elements):
@@ -805,9 +839,9 @@ instance's greatest bottleneck.
         for index, elem in enumerate(elements):
             prev_url = elements[index - 1].title if index > 0 else None
             next_url = elements[index + 1].title if index < len(elements) - 1 else None
-            tasks.append(asyncio.create_task(
-                self._download_learning_module_page(cl.path, elem, prev_url, next_url)
-            ))
+            tasks.append(
+                asyncio.create_task(self._download_learning_module_page(cl.path, elem, prev_url, next_url))
+            )
 
         # And execute them
         await self.gather(tasks)
@@ -817,7 +851,7 @@ instance's greatest bottleneck.
         path: PurePath,
         start_url: Optional[str],
         dir: Union[Literal["left"], Literal["right"]],
-        parent_element: IliasPageElement
+        parent_element: IliasPageElement,
     ) -> List[IliasLearningModulePage]:
         elements: List[IliasLearningModulePage] = []
 
@@ -848,7 +882,7 @@ instance's greatest bottleneck.
         parent_path: PurePath,
         element: IliasLearningModulePage,
         prev: Optional[str],
-        next: Optional[str]
+        next: Optional[str],
     ) -> None:
         path = parent_path / (_sanitize_path_name(element.title) + ".html")
         maybe_dl = await self.download(path)
@@ -928,11 +962,7 @@ instance's greatest bottleneck.
             )
         return soup
 
-    async def _post_authenticated(
-        self,
-        url: str,
-        data: dict[str, Union[str, List[str]]]
-    ) -> bytes:
+    async def _post_authenticated(self, url: str, data: dict[str, Union[str, List[str]]]) -> bytes:
         auth_id = await self._current_auth_id()
 
         form_data = aiohttp.FormData()
@@ -980,7 +1010,11 @@ class KitShibbolethLogin:
     Login via KIT's shibboleth system.
     """
 
-    def __init__(self, authenticator: Authenticator, tfa_authenticator: Optional[Authenticator]) -> None:
+    def __init__(
+        self,
+        authenticator: Authenticator,
+        tfa_authenticator: Optional[Authenticator],
+    ) -> None:
         self._auth = authenticator
         self._tfa_auth = tfa_authenticator
 
@@ -1025,7 +1059,7 @@ class KitShibbolethLogin:
                 "_eventId_proceed": "",
                 "j_username": username,
                 "j_password": password,
-                "csrf_token": csrf_token
+                "csrf_token": csrf_token,
             }
             soup = await _post(sess, url, data)
 
@@ -1052,11 +1086,7 @@ class KitShibbolethLogin:
         }
         await sess.post(url, data=data)
 
-    async def _authenticate_tfa(
-        self,
-        session: aiohttp.ClientSession,
-        soup: BeautifulSoup
-    ) -> BeautifulSoup:
+    async def _authenticate_tfa(self, session: aiohttp.ClientSession, soup: BeautifulSoup) -> BeautifulSoup:
         if not self._tfa_auth:
             self._tfa_auth = TfaAuthenticator("ilias-anon-tfa")
 
@@ -1074,7 +1104,7 @@ class KitShibbolethLogin:
         data = {
             "_eventId_proceed": "",
             "j_tokenNumber": tfa_token,
-            "csrf_token": csrf_token
+            "csrf_token": csrf_token,
         }
         return await _post(session, url, data)
 
@@ -1095,9 +1125,7 @@ async def _post(session: aiohttp.ClientSession, url: str, data: Any) -> Beautifu
 
 
 async def _shib_post(
-    session: aiohttp.ClientSession,
-    url: str,
-    data: Any
+    session: aiohttp.ClientSession, url: str, data: Any
 ) -> Union[BeautifulSoup, KitShibbolethBackgroundLoginSuccessful]:
     """
     aiohttp unescapes '/' and ':' in URL query parameters which is not RFC compliant and rejected
@@ -1134,7 +1162,7 @@ async def _shib_post(
                 scheme=as_yarl.scheme,
                 host=as_yarl.host,
                 path=location,
-                encoded=True
+                encoded=True,
             )
             log.explain(f"Corrected location to {correct_url!r}")
 

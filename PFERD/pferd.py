@@ -5,7 +5,13 @@ from rich.markup import escape
 
 from .auth import AUTHENTICATORS, Authenticator, AuthError, AuthSection
 from .config import Config, ConfigOptionError
-from .crawl import CRAWLERS, Crawler, CrawlError, CrawlerSection, KitIliasWebCrawler
+from .crawl import (
+    CRAWLERS,
+    Crawler,
+    CrawlError,
+    CrawlerSection,
+    KitIliasWebCrawler,
+)
 from .logging import log
 from .utils import fmt_path
 
@@ -15,7 +21,12 @@ class PferdLoadError(Exception):
 
 
 class Pferd:
-    def __init__(self, config: Config, cli_crawlers: Optional[List[str]], cli_skips: Optional[List[str]]):
+    def __init__(
+        self,
+        config: Config,
+        cli_crawlers: Optional[List[str]],
+        cli_skips: Optional[List[str]],
+    ):
         """
         May throw PferdLoadError.
         """
@@ -66,10 +77,10 @@ class Pferd:
         return crawlers_to_run
 
     def _find_crawlers_to_run(
-            self,
-            config: Config,
-            cli_crawlers: Optional[List[str]],
-            cli_skips: Optional[List[str]],
+        self,
+        config: Config,
+        cli_crawlers: Optional[List[str]],
+        cli_skips: Optional[List[str]],
     ) -> List[str]:
         log.explain_topic("Deciding which crawlers to run")
 

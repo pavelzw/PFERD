@@ -4,8 +4,14 @@ from pathlib import Path
 
 from ..crawl.ilias.file_templates import Links
 from ..logging import log
-from .parser import (CRAWLER_PARSER, SUBPARSERS, BooleanOptionalAction, ParserLoadError, load_crawler,
-                     show_value_error)
+from .parser import (
+    CRAWLER_PARSER,
+    SUBPARSERS,
+    BooleanOptionalAction,
+    ParserLoadError,
+    load_crawler,
+    show_value_error,
+)
 
 SUBPARSER = SUBPARSERS.add_parser(
     "kit-ilias-web",
@@ -20,64 +26,57 @@ GROUP.add_argument(
     "target",
     type=str,
     metavar="TARGET",
-    help="course id, 'desktop', or ILIAS URL to crawl"
+    help="course id, 'desktop', or ILIAS URL to crawl",
 )
+GROUP.add_argument("output", type=Path, metavar="OUTPUT", help="output directory")
 GROUP.add_argument(
-    "output",
-    type=Path,
-    metavar="OUTPUT",
-    help="output directory"
-)
-GROUP.add_argument(
-    "--username", "-u",
+    "--username",
+    "-u",
     type=str,
     metavar="USERNAME",
-    help="user name for authentication"
+    help="user name for authentication",
 )
 GROUP.add_argument(
     "--keyring",
     action=BooleanOptionalAction,
-    help="use the system keyring to store and retrieve passwords"
+    help="use the system keyring to store and retrieve passwords",
 )
 GROUP.add_argument(
     "--credential-file",
     type=Path,
     metavar="PATH",
-    help="read username and password from a credential file"
+    help="read username and password from a credential file",
 )
 GROUP.add_argument(
     "--links",
     type=show_value_error(Links.from_string),
     metavar="OPTION",
-    help="how to represent external links"
+    help="how to represent external links",
 )
 GROUP.add_argument(
     "--link-redirect-delay",
     type=int,
     metavar="SECONDS",
-    help="time before 'fancy' links redirect to to their target (-1 to disable)"
+    help="time before 'fancy' links redirect to to their target (-1 to disable)",
 )
-GROUP.add_argument(
-    "--videos",
-    action=BooleanOptionalAction,
-    help="crawl and download videos"
-)
+GROUP.add_argument("--videos", action=BooleanOptionalAction, help="crawl and download videos")
 GROUP.add_argument(
     "--forums",
     action=BooleanOptionalAction,
-    help="crawl and download forum posts"
+    help="crawl and download forum posts",
 )
 GROUP.add_argument(
-    "--http-timeout", "-t",
+    "--http-timeout",
+    "-t",
     type=float,
     metavar="SECONDS",
-    help="timeout for all HTTP requests"
+    help="timeout for all HTTP requests",
 )
 
 
 def load(
-        args: argparse.Namespace,
-        parser: configparser.ConfigParser,
+    args: argparse.Namespace,
+    parser: configparser.ConfigParser,
 ) -> None:
     log.explain("Creating config for command 'kit-ilias-web'")
 

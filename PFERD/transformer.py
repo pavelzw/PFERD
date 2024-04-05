@@ -204,7 +204,7 @@ class Line:
 
     @property
     def rest(self) -> str:
-        return self.line[self.index:]
+        return self.line[self.index :]
 
     def peek(self, amount: int = 1) -> str:
         return self.rest[:amount]
@@ -323,21 +323,27 @@ def parse_right(line: Line) -> Union[str, Ignore]:
 
 
 def parse_arrow_name(line: Line) -> str:
-    return line.one_of([
-        lambda: line.expect("exact-re"),
-        lambda: line.expect("exact"),
-        lambda: line.expect("name-re"),
-        lambda: line.expect("name"),
-        lambda: line.expect("re"),
-        lambda: line.expect(""),
-    ], "Expected arrow name")
+    return line.one_of(
+        [
+            lambda: line.expect("exact-re"),
+            lambda: line.expect("exact"),
+            lambda: line.expect("name-re"),
+            lambda: line.expect("name"),
+            lambda: line.expect("re"),
+            lambda: line.expect(""),
+        ],
+        "Expected arrow name",
+    )
 
 
 def parse_arrow_head(line: Line) -> ArrowHead:
-    return line.one_of([
-        lambda: line.expect_with(">>", ArrowHead.SEQUENCE),
-        lambda: line.expect_with(">", ArrowHead.NORMAL),
-    ], "Expected arrow head")
+    return line.one_of(
+        [
+            lambda: line.expect_with(">>", ArrowHead.SEQUENCE),
+            lambda: line.expect_with(">", ArrowHead.NORMAL),
+        ],
+        "Expected arrow head",
+    )
 
 
 def parse_eol(line: Line) -> None:

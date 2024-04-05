@@ -14,41 +14,31 @@ GROUP = SUBPARSER.add_argument_group(
     title="local crawler arguments",
     description="arguments for the 'local' crawler",
 )
-GROUP.add_argument(
-    "target",
-    type=Path,
-    metavar="TARGET",
-    help="directory to crawl"
-)
-GROUP.add_argument(
-    "output",
-    type=Path,
-    metavar="OUTPUT",
-    help="output directory"
-)
+GROUP.add_argument("target", type=Path, metavar="TARGET", help="directory to crawl")
+GROUP.add_argument("output", type=Path, metavar="OUTPUT", help="output directory")
 GROUP.add_argument(
     "--crawl-delay",
     type=float,
     metavar="SECONDS",
-    help="artificial delay to simulate for crawl requests"
+    help="artificial delay to simulate for crawl requests",
 )
 GROUP.add_argument(
     "--download-delay",
     type=float,
     metavar="SECONDS",
-    help="artificial delay to simulate for download requests"
+    help="artificial delay to simulate for download requests",
 )
 GROUP.add_argument(
     "--download-speed",
     type=int,
     metavar="BYTES_PER_SECOND",
-    help="download speed to simulate"
+    help="download speed to simulate",
 )
 
 
 def load(
-        args: argparse.Namespace,
-        parser: configparser.ConfigParser,
+    args: argparse.Namespace,
+    parser: configparser.ConfigParser,
 ) -> None:
     log.explain("Creating config for command 'local'")
 
