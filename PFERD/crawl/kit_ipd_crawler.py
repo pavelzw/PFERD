@@ -52,12 +52,11 @@ class KitIpdFolder:
 
 
 class KitIpdCrawler(HttpCrawler):
-
     def __init__(
-            self,
-            name: str,
-            section: KitIpdCrawlerSection,
-            config: Config,
+        self,
+        name: str,
+        section: KitIpdCrawlerSection,
+        config: Config,
     ):
         super().__init__(name, section, config)
         self._url = section.target()

@@ -156,8 +156,8 @@ def learning_module_template(body: bs4.Tag, name: str, prev: Optional[str], next
         )
 
     if bot_nav := body.select_one(".ilc_page_bnav_BottomNavigation"):
-        bot_nav.replace_with(soupify(nav_template.replace(
-            "{{left}}", left).replace("{{right}}", right).encode())
+        bot_nav.replace_with(
+            soupify(nav_template.replace("{{left}}", left).replace("{{right}}", right).encode())
         )
 
     body = body.prettify()
@@ -197,5 +197,4 @@ class Links(Enum):
         try:
             return Links(string)
         except ValueError:
-            raise ValueError("must be one of 'ignore', 'plaintext',"
-                             " 'html', 'internet-shortcut'")
+            raise ValueError("must be one of 'ignore', 'plaintext'," " 'html', 'internet-shortcut'")

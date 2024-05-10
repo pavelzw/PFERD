@@ -15,28 +15,15 @@ GROUP = SUBPARSER.add_argument_group(
     description="arguments for the 'kit-ipd' crawler",
 )
 GROUP.add_argument(
-    "--link-regex",
-    type=str,
-    metavar="REGEX",
-    help="href-matching regex to identify downloadable files"
+    "--link-regex", type=str, metavar="REGEX", help="href-matching regex to identify downloadable files"
 )
-GROUP.add_argument(
-    "target",
-    type=str,
-    metavar="TARGET",
-    help="url to crawl"
-)
-GROUP.add_argument(
-    "output",
-    type=Path,
-    metavar="OUTPUT",
-    help="output directory"
-)
+GROUP.add_argument("target", type=str, metavar="TARGET", help="url to crawl")
+GROUP.add_argument("output", type=Path, metavar="OUTPUT", help="output directory")
 
 
 def load(
-        args: argparse.Namespace,
-        parser: configparser.ConfigParser,
+    args: argparse.Namespace,
+    parser: configparser.ConfigParser,
 ) -> None:
     log.explain("Creating config for command 'kit-ipd'")
 

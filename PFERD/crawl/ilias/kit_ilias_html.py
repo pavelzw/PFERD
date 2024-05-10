@@ -54,7 +54,7 @@ class IliasPageElement:
             r"exc_(?P<id>\d+)",
             r"ref_id=(?P<id>\d+)",
             r"target=[a-z]+_(?P<id>\d+)",
-            r"mm_(?P<id>\d+)"
+            r"mm_(?P<id>\d+)",
         ]
 
         for regex in regexes:
@@ -71,8 +71,8 @@ class IliasPageElement:
         url: str,
         name: str,
         mtime: Optional[datetime] = None,
-        description: Optional[str] = None
-    ) -> 'IliasPageElement':
+        description: Optional[str] = None,
+    ) -> "IliasPageElement":
         if typ == IliasElementType.MEETING:
             normalized = _sanitize_path_name(IliasPageElement._normalize_meeting_name(name))
             log.explain(f"Normalized meeting name from {name!r} to {normalized!r}")
@@ -131,7 +131,6 @@ class IliasLearningModulePage:
 
 
 class IliasPage:
-
     def __init__(self, soup: BeautifulSoup, _page_url: str, source_element: Optional[IliasPageElement]):
         self._soup = soup
         self._page_url = _page_url
@@ -171,14 +170,11 @@ class IliasPage:
 
     def get_info_tab(self) -> Optional[IliasPageElement]:
         tab: Optional[Tag] = self._soup.find(
-            name="a",
-            attrs={"href": lambda x: x and "cmdClass=ilinfoscreengui" in x}
+            name="a", attrs={"href": lambda x: x and "cmdClass=ilinfoscreengui" in x}
         )
         if tab is not None:
             return IliasPageElement.create_new(
-                IliasElementType.INFO_TAB,
-                self._abs_url_from_link(tab),
-                "infos"
+                IliasElementType.INFO_TAB, self._abs_url_from_link(tab), "infos"
             )
         return None
 
@@ -216,7 +212,7 @@ class IliasPage:
             title=title,
             content=content,
             next_url=self._find_learning_module_next(),
-            previous_url=self._find_learning_module_prev()
+            previous_url=self._find_learning_module_prev(),
         )
 
     def _find_learning_module_next(self) -> Optional[str]:
@@ -277,8 +273,7 @@ class IliasPage:
 
     def _is_forum_page(self) -> bool:
         read_more_btn = self._soup.find(
-            "button",
-            attrs={"onclick": lambda x: x and "cmdClass=ilobjforumgui&cmd=markAllRead" in x}
+            "button", attrs={"onclick": lambda x: x and "cmdClass=ilobjforumgui&cmd=markAllRead" in x}
         )
         return read_more_btn is not None
 
@@ -290,9 +285,7 @@ class IliasPage:
             return True
 
         # Raw listing without ILIAS fluff
-        video_element_table: Tag = self._soup.find(
-            name="table", id=re.compile(r"tbl_xoct_.+")
-        )
+        video_element_table: Tag = self._soup.find(name="table", id=re.compile(r"tbl_xoct_.+"))
         return video_element_table is not None
 
     def _is_ilias_opencast_embedding(self) -> bool:
@@ -334,8 +327,7 @@ class IliasPage:
 
     def _uncollapse_future_meetings_url(self) -> Optional[IliasPageElement]:
         element = self._soup.find(
-            "a",
-            attrs={"href": lambda x: x and ("crs_next_sess=1" in x or "crs_prev_sess=1" in x)}
+            "a", attrs={"href": lambda x: x and ("crs_next_sess=1" in x or "crs_prev_sess=1" in x)}
         )
         if not element:
             return None
@@ -351,8 +343,7 @@ class IliasPage:
 
     def _select_content_page_url(self) -> Optional[IliasPageElement]:
         tab = self._soup.find(
-            id="tab_view_content",
-            attrs={"class": lambda x: x is not None and "active" not in x}
+            id="tab_view_content", attrs={"class": lambda x: x is not None and "active" not in x}
         )
         # Already selected (or not found)
         if not tab:
@@ -373,9 +364,7 @@ class IliasPage:
         # on the page, but defined in a JS object inside a script tag, passed to the player
         # library.
         # We do the impossible and RegEx the stream JSON object out of the page's HTML source
-        regex = re.compile(
-            r"({\"streams\"[\s\S]+?),\s*{\"paella_config_file", re.IGNORECASE
-        )
+        regex = re.compile(r"({\"streams\"[\s\S]+?),\s*{\"paella_config_file", re.IGNORECASE)
         json_match = regex.search(str(self._soup))
 
         if json_match is None:
@@ -405,8 +394,7 @@ class IliasPage:
 
     def _get_show_max_forum_entries_per_page_url(self) -> Optional[IliasPageElement]:
         correct_link = self._soup.find(
-            "a",
-            attrs={"href": lambda x: x and "trows=800" in x and "cmd=showThreads" in x}
+            "a", attrs={"href": lambda x: x and "trows=800" in x and "cmd=showThreads" in x}
         )
 
         if not correct_link:
@@ -472,11 +460,11 @@ class IliasPage:
                 continue
             if "cmd=sendfile" not in link["href"]:
                 continue
-            items.append(IliasPageElement.create_new(
-                IliasElementType.FILE,
-                self._abs_url_from_link(link),
-                _sanitize_path_name(link.getText())
-            ))
+            items.append(
+                IliasPageElement.create_new(
+                    IliasElementType.FILE, self._abs_url_from_link(link), _sanitize_path_name(link.getText())
+                )
+            )
 
         return items
 
@@ -488,9 +476,7 @@ class IliasPage:
         #
         # We need to figure out where we are.
 
-        video_element_table: Tag = self._soup.find(
-            name="table", id=re.compile(r"tbl_xoct_.+")
-        )
+        video_element_table: Tag = self._soup.find(name="table", id=re.compile(r"tbl_xoct_.+"))
 
         if video_element_table is None:
             # We are in stage 1
@@ -526,8 +512,7 @@ class IliasPage:
 
         table_id = id_match.group(1)
 
-        query_params = {f"tbl_xoct_{table_id}_trows": "800",
-                        "cmd": "asyncGetTableGUI", "cmdMode": "asynch"}
+        query_params = {f"tbl_xoct_{table_id}_trows": "800", "cmd": "asyncGetTableGUI", "cmdMode": "asynch"}
         url = url_set_query_params(self._page_url, query_params)
 
         log.explain("Disabled pagination, retrying folder as a new entry")
@@ -538,9 +523,7 @@ class IliasPage:
         Crawls the "second stage" video page. This page contains the actual video urls.
         """
         # Video start links are marked with an "Abspielen" link
-        video_links: List[Tag] = self._soup.findAll(
-            name="a", text=re.compile(r"\s*(Abspielen|Play)\s*")
-        )
+        video_links: List[Tag] = self._soup.findAll(name="a", text=re.compile(r"\s*(Abspielen|Play)\s*"))
 
         results: List[IliasPageElement] = []
 
@@ -557,9 +540,9 @@ class IliasPage:
         row: Tag = link.parent.parent.parent
         column_count = len(row.select("td.std"))
         for index in range(column_count, 0, -1):
-            modification_string = link.parent.parent.parent.select_one(
-                f"td.std:nth-child({index})"
-            ).getText().strip()
+            modification_string = (
+                link.parent.parent.parent.select_one(f"td.std:nth-child({index})").getText().strip()
+            )
             if match := re.search(r"\d+\.\d+.\d+ \d+:\d+", modification_string):
                 modification_time = datetime.strptime(match.group(0), "%d.%m.%Y %H:%M")
                 break
@@ -595,7 +578,7 @@ class IliasPage:
             name="a",
             # download links contain the given command class
             attrs={"href": lambda x: x and "cmd=download" in x},
-            text="Download"
+            text="Download",
         )
 
         for link in download_links:
@@ -612,12 +595,9 @@ class IliasPage:
             if date is None:
                 log.warn(f"Date parsing failed for exercise entry {name!r}")
 
-            results.append(IliasPageElement.create_new(
-                IliasElementType.FILE,
-                self._abs_url_from_link(link),
-                name,
-                date
-            ))
+            results.append(
+                IliasPageElement.create_new(IliasElementType.FILE, self._abs_url_from_link(link), name, date)
+            )
 
         return results
 
@@ -637,7 +617,7 @@ class IliasPage:
                 name="a",
                 # download links contain the given command class
                 attrs={"href": lambda x: x and "cmdClass=ilexsubmissiongui" in x},
-                text="Download"
+                text="Download",
             )
 
             # Grab each file as you now have the link
@@ -649,18 +629,20 @@ class IliasPage:
                 url = self._abs_url_from_link(file_link)
 
                 log.explain(f"Found exercise entry {file_name!r}")
-                results.append(IliasPageElement.create_new(
-                    IliasElementType.FILE,
-                    url,
-                    container_name + "/" + file_name,
-                    None  # We do not have any timestamp
-                ))
+                results.append(
+                    IliasPageElement.create_new(
+                        IliasElementType.FILE,
+                        url,
+                        container_name + "/" + file_name,
+                        None,  # We do not have any timestamp
+                    )
+                )
 
             # Find all links to file listings (e.g. "Submitted Files" for groups)
             file_listings: List[Tag] = container.findAll(
                 name="a",
                 # download links contain the given command class
-                attrs={"href": lambda x: x and "cmdclass=ilexsubmissionfilegui" in x.lower()}
+                attrs={"href": lambda x: x and "cmdclass=ilexsubmissionfilegui" in x.lower()},
             )
 
             # Add each listing as a new
@@ -674,12 +656,14 @@ class IliasPage:
                 file_name = _sanitize_path_name(label_container.getText().strip())
                 url = self._abs_url_from_link(listing)
                 log.explain(f"Found exercise detail {file_name!r} at {url}")
-                results.append(IliasPageElement.create_new(
-                    IliasElementType.EXERCISE_FILES,
-                    url,
-                    container_name + "/" + file_name,
-                    None  # we do not have any timestamp
-                ))
+                results.append(
+                    IliasPageElement.create_new(
+                        IliasElementType.EXERCISE_FILES,
+                        url,
+                        container_name + "/" + file_name,
+                        None,  # we do not have any timestamp
+                    )
+                )
 
         return results
 
@@ -714,8 +698,9 @@ class IliasPage:
                 continue
 
             log.explain(f"Found {element_name!r}")
-            result.append(IliasPageElement.create_new(
-                element_type, abs_url, element_name, description=description))
+            result.append(
+                IliasPageElement.create_new(element_type, abs_url, element_name, description=description)
+            )
 
         result += self._find_cards()
         result += self._find_mediacast_videos()
@@ -738,12 +723,14 @@ class IliasPage:
                 log.warn_contd(f"No <video> element found for mediacast video '{element_name}'")
                 continue
 
-            videos.append(IliasPageElement.create_new(
-                typ=IliasElementType.MEDIACAST_VIDEO,
-                url=self._abs_url_from_relative(video_element.get("src")),
-                name=element_name,
-                mtime=self._find_mediacast_video_mtime(elem.findParent(name="td"))
-            ))
+            videos.append(
+                IliasPageElement.create_new(
+                    typ=IliasElementType.MEDIACAST_VIDEO,
+                    url=self._abs_url_from_relative(video_element.get("src")),
+                    name=element_name,
+                    mtime=self._find_mediacast_video_mtime(elem.findParent(name="td")),
+                )
+            )
 
         return videos
 
@@ -817,9 +804,9 @@ class IliasPage:
 
         if outer_accordion_content:
             accordion_tag: Tag = outer_accordion_content.parent
-            head_tag: Tag = accordion_tag.find(attrs={
-                "class": lambda x: x and "ilc_va_ihead_VAccordIHead" in x
-            })
+            head_tag: Tag = accordion_tag.find(
+                attrs={"class": lambda x: x and "ilc_va_ihead_VAccordIHead" in x}
+            )
             found_titles.append(head_tag.getText().strip())
 
         return [_sanitize_path_name(x) for x in reversed(found_titles)]
@@ -848,7 +835,7 @@ class IliasPage:
         all_properties_text = properties_parent.getText().strip()
         modification_date_match = re.search(
             r"(((\d+\. \w+ \d+)|(Gestern|Yesterday)|(Heute|Today)|(Morgen|Tomorrow)), \d+:\d+)",
-            all_properties_text
+            all_properties_text,
         )
         if modification_date_match is None:
             modification_date = None
@@ -960,11 +947,7 @@ class IliasPage:
         return None
 
     @staticmethod
-    def _find_type_from_link(
-        element_name: str,
-        link_element: Tag,
-        url: str
-    ) -> Optional[IliasElementType]:
+    def _find_type_from_link(element_name: str, link_element: Tag, url: str) -> Optional[IliasElementType]:
         """
         Decides which sub crawler to use for a given top level element.
         """
@@ -1056,8 +1039,7 @@ class IliasPage:
             img_tag = found_parent.select_one("img.icon")
 
         is_session_expansion_button = found_parent.find(
-            "a",
-            attrs={"href": lambda x: x and ("crs_next_sess=" in x or "crs_prev_sess=" in x)}
+            "a", attrs={"href": lambda x: x and ("crs_next_sess=" in x or "crs_prev_sess=" in x)}
         )
         if img_tag is None and is_session_expansion_button:
             log.explain("Found session expansion button, skipping it as it has no content")
@@ -1121,9 +1103,7 @@ class IliasPage:
         # Video listing embeds do not have complete ILIAS html. Try to match them by
         # their video listing table
         video_table = soup.find(
-            recursive=True,
-            name="table",
-            attrs={"id": lambda x: x is not None and x.startswith("tbl_xoct")}
+            recursive=True, name="table", attrs={"id": lambda x: x is not None and x.startswith("tbl_xoct")}
         )
         if video_table is not None:
             return True
@@ -1160,8 +1140,8 @@ def _unexpected_html_warning() -> None:
     log.warn("Encountered unexpected HTML structure, ignoring element.")
 
 
-german_months = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez']
-english_months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+german_months = ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"]
+english_months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
 
 def demangle_date(date_str: str, fail_silently: bool = False) -> Optional[datetime]:
@@ -1244,7 +1224,7 @@ def parse_ilias_forum_export(forum_export: BeautifulSoup) -> List[IliasForumThre
 
         title = p.find("b").text
         if ":" in title:
-            title = title[title.find(":") + 1:]
+            title = title[title.find(":") + 1 :]
         title = title.strip()
         mtime = _guess_timestamp_from_forum_post_content(content_tag)
         elements.append(IliasForumThread(title, title_tag, content_tag, mtime))
@@ -1261,7 +1241,7 @@ def _guess_timestamp_from_forum_post_content(content: Tag) -> Optional[datetime]
 
     for post in posts:
         text = post.text.strip()
-        text = text[text.rfind("|") + 1:]
+        text = text[text.rfind("|") + 1 :]
         date = demangle_date(text, fail_silently=True)
         if not date:
             continue

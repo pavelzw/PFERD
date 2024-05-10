@@ -17,7 +17,7 @@ TargetType = Union[str, int]
 _ILIAS_URL = "https://ilias.studium.kit.edu"
 
 
-class KitShibbolethBackgroundLoginSuccessful():
+class KitShibbolethBackgroundLoginSuccessful:
     pass
 
 
@@ -46,7 +46,7 @@ class KitIliasWebCrawler(IliasWebCrawler):
         name: str,
         section: KitIliasWebCrawlerSection,
         config: Config,
-        authenticators: Dict[str, Authenticator]
+        authenticators: Dict[str, Authenticator],
     ):
         super().__init__(name, section, config, authenticators)
 
@@ -112,7 +112,7 @@ class KitShibbolethLogin:
                 "_eventId_proceed": "",
                 "j_username": username,
                 "j_password": password,
-                "csrf_token": csrf_token
+                "csrf_token": csrf_token,
             }
             soup = await _post(sess, url, data)
 
@@ -139,11 +139,7 @@ class KitShibbolethLogin:
         }
         await sess.post(url, data=data)
 
-    async def _authenticate_tfa(
-        self,
-        session: aiohttp.ClientSession,
-        soup: BeautifulSoup
-    ) -> BeautifulSoup:
+    async def _authenticate_tfa(self, session: aiohttp.ClientSession, soup: BeautifulSoup) -> BeautifulSoup:
         if not self._tfa_auth:
             self._tfa_auth = TfaAuthenticator("ilias-anon-tfa")
 
@@ -158,11 +154,7 @@ class KitShibbolethLogin:
         # Equivalent: Enter token in
         # https://idp.scc.kit.edu/idp/profile/SAML2/Redirect/SSO
         url = "https://idp.scc.kit.edu" + action
-        data = {
-            "_eventId_proceed": "",
-            "j_tokenNumber": tfa_token,
-            "csrf_token": csrf_token
-        }
+        data = {"_eventId_proceed": "", "j_tokenNumber": tfa_token, "csrf_token": csrf_token}
         return await _post(session, url, data)
 
     @staticmethod
@@ -182,9 +174,7 @@ async def _post(session: aiohttp.ClientSession, url: str, data: Any) -> Beautifu
 
 
 async def _shib_post(
-    session: aiohttp.ClientSession,
-    url: str,
-    data: Any
+    session: aiohttp.ClientSession, url: str, data: Any
 ) -> Union[BeautifulSoup, KitShibbolethBackgroundLoginSuccessful]:
     """
     aiohttp unescapes '/' and ':' in URL query parameters which is not RFC compliant and rejected
@@ -218,10 +208,7 @@ async def _shib_post(
                 raise CrawlWarning(f"Login failed (2), no location header present at {correct_url}")
 
             correct_url = yarl.URL.build(
-                scheme=as_yarl.scheme,
-                host=as_yarl.host,
-                path=location,
-                encoded=True
+                scheme=as_yarl.scheme, host=as_yarl.host, path=location, encoded=True
             )
             log.explain(f"Corrected location to {correct_url!r}")
 

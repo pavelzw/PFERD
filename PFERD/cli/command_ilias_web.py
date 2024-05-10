@@ -17,26 +17,16 @@ GROUP = SUBPARSER.add_argument_group(
     description=f"arguments for the '{COMMAND_NAME}' crawler",
 )
 
-GROUP.add_argument(
-    "--base-url",
-    type=str,
-    metavar="BASE_URL",
-    help="The base url of the ilias instance"
-)
+GROUP.add_argument("--base-url", type=str, metavar="BASE_URL", help="The base url of the ilias instance")
 
-GROUP.add_argument(
-    "--client-id",
-    type=str,
-    metavar="CLIENT_ID",
-    help="The client id of the ilias instance"
-)
+GROUP.add_argument("--client-id", type=str, metavar="CLIENT_ID", help="The client id of the ilias instance")
 
 configure_common_group_args(GROUP)
 
 
 def load(
-        args: argparse.Namespace,
-        parser: configparser.ConfigParser,
+    args: argparse.Namespace,
+    parser: configparser.ConfigParser,
 ) -> None:
     log.explain(f"Creating config for command '{COMMAND_NAME}'")
 

@@ -148,17 +148,19 @@ class IliasWebCrawler(HttpCrawler):
         name: str,
         section: IliasWebCrawlerSection,
         config: Config,
-        authenticators: Dict[str, Authenticator]
+        authenticators: Dict[str, Authenticator],
     ):
         # Setting a main authenticator for cookie sharing
         auth = section.auth(authenticators)
         super().__init__(name, section, config, shared_auth=auth)
 
         if section.tasks() > 1:
-            log.warn("""
+            log.warn(
+                """
 Please avoid using too many parallel requests as these are the KIT ILIAS
 instance's greatest bottleneck.
-            """.strip())
+            """.strip()
+            )
 
         self._auth = auth
         self._base_url = section.base_url()
@@ -186,7 +188,8 @@ instance's greatest bottleneck.
         # Start crawling at the given course
         root_url = url_set_query_param(
             urljoin(self._base_url, "/goto.php"),
-            "target", f"crs_{course_id}",
+            "target",
+            f"crs_{course_id}",
         )
 
         await self._crawl_url(root_url, expected_id=course_id)
@@ -194,10 +197,13 @@ instance's greatest bottleneck.
     async def _crawl_desktop(self) -> None:
         appendix = r"ILIAS\Repository\Provider\RepositoryMainBarProvider|mm_pd_sel_items"
         appendix = appendix.encode("ASCII").hex()
-        await self._crawl_url(url_set_query_param(
-            urljoin(self._base_url, "/gs_content.php"),
-            "item=", appendix,
-        ))
+        await self._crawl_url(
+            url_set_query_param(
+                urljoin(self._base_url, "/gs_content.php"),
+                "item=",
+                appendix,
+            )
+        )
 
     async def _crawl_url(self, url: str, expected_id: Optional[int] = None) -> None:
         maybe_cl = await self.crawl(PurePath("."))
@@ -343,7 +349,7 @@ instance's greatest bottleneck.
                     "[bold bright_black]",
                     "Ignored",
                     fmt_path(element_path),
-                    "[bright_black](enable with option 'videos')"
+                    "[bright_black](enable with option 'videos')",
                 )
                 return None
 
@@ -355,7 +361,7 @@ instance's greatest bottleneck.
                     "[bold bright_black]",
                     "Ignored",
                     fmt_path(element_path),
-                    "[bright_black](enable with option 'forums')"
+                    "[bright_black](enable with option 'forums')",
                 )
                 return None
             return await self._handle_forum(element, element_path)
@@ -364,7 +370,7 @@ instance's greatest bottleneck.
                 "[bold bright_black]",
                 "Ignored",
                 fmt_path(element_path),
-                "[bright_black](tests contain no relevant data)"
+                "[bright_black](tests contain no relevant data)",
             )
             return None
         elif element.type == IliasElementType.SURVEY:
@@ -372,7 +378,7 @@ instance's greatest bottleneck.
                 "[bold bright_black]",
                 "Ignored",
                 fmt_path(element_path),
-                "[bright_black](surveys contain no relevant data)"
+                "[bright_black](surveys contain no relevant data)",
             )
             return None
         elif element.type == IliasElementType.SCORM_LEARNING_MODULE:
@@ -380,7 +386,7 @@ instance's greatest bottleneck.
                 "[bold bright_black]",
                 "Ignored",
                 fmt_path(element_path),
-                "[bright_black](scorm learning modules are not supported)"
+                "[bright_black](scorm learning modules are not supported)",
             )
             return None
         elif element.type == IliasElementType.LEARNING_MODULE:
@@ -520,7 +526,7 @@ instance's greatest bottleneck.
         if self.prev_report:
             self.report.add_custom_value(
                 _get_video_cache_key(element),
-                self.prev_report.get_custom_value(_get_video_cache_key(element))
+                self.prev_report.get_custom_value(_get_video_cache_key(element)),
             )
 
         # A video might contain other videos, so let's "crawl" the video first
@@ -590,7 +596,7 @@ instance's greatest bottleneck.
         def add_to_report(paths: list[str]) -> None:
             self.report.add_custom_value(
                 _get_video_cache_key(element),
-                {"known_paths": paths, "own_path": str(self._transformer.transform(dl.path))}
+                {"known_paths": paths, "own_path": str(self._transformer.transform(dl.path))},
             )
 
         async with dl as (bar, sink):
@@ -772,13 +778,13 @@ instance's greatest bottleneck.
             soup = await self._get_page(element.url)
             page = IliasPage(soup, element.url, element)
             if next := page.get_learning_module_data():
-                elements.extend(await self._crawl_learning_module_direction(
-                    cl.path, next.previous_url, "left", element
-                ))
+                elements.extend(
+                    await self._crawl_learning_module_direction(cl.path, next.previous_url, "left", element)
+                )
                 elements.append(next)
-                elements.extend(await self._crawl_learning_module_direction(
-                    cl.path, next.next_url, "right", element
-                ))
+                elements.extend(
+                    await self._crawl_learning_module_direction(cl.path, next.next_url, "right", element)
+                )
 
         # Reflect their natural ordering in the file names
         for index, lm_element in enumerate(elements):
@@ -788,9 +794,9 @@ instance's greatest bottleneck.
         for index, elem in enumerate(elements):
             prev_url = elements[index - 1].title if index > 0 else None
             next_url = elements[index + 1].title if index < len(elements) - 1 else None
-            tasks.append(asyncio.create_task(
-                self._download_learning_module_page(cl.path, elem, prev_url, next_url)
-            ))
+            tasks.append(
+                asyncio.create_task(self._download_learning_module_page(cl.path, elem, prev_url, next_url))
+            )
 
         # And execute them
         await self.gather(tasks)
@@ -800,7 +806,7 @@ instance's greatest bottleneck.
         path: PurePath,
         start_url: Optional[str],
         dir: Union[Literal["left"], Literal["right"]],
-        parent_element: IliasPageElement
+        parent_element: IliasPageElement,
     ) -> List[IliasLearningModulePage]:
         elements: List[IliasLearningModulePage] = []
 
@@ -831,7 +837,7 @@ instance's greatest bottleneck.
         parent_path: PurePath,
         element: IliasLearningModulePage,
         prev: Optional[str],
-        next: Optional[str]
+        next: Optional[str],
     ) -> None:
         path = parent_path / (_sanitize_path_name(element.title) + ".html")
         maybe_dl = await self.download(path)
@@ -911,11 +917,7 @@ instance's greatest bottleneck.
             )
         return soup
 
-    async def _post_authenticated(
-        self,
-        url: str,
-        data: dict[str, Union[str, List[str]]]
-    ) -> bytes:
+    async def _post_authenticated(self, url: str, data: dict[str, Union[str, List[str]]]) -> bytes:
         auth_id = await self._current_auth_id()
 
         form_data = aiohttp.FormData()
@@ -1000,9 +1002,7 @@ instance's greatest bottleneck.
         # Video listing embeds do not have complete ILIAS html. Try to match them by
         # their video listing table
         video_table = soup.find(
-            recursive=True,
-            name="table",
-            attrs={"id": lambda x: x is not None and x.startswith("tbl_xoct")}
+            recursive=True, name="table", attrs={"id": lambda x: x is not None and x.startswith("tbl_xoct")}
         )
         if video_table is not None:
             return True
