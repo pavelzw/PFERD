@@ -21,8 +21,15 @@ from ..http_crawler import HttpCrawler, HttpCrawlerSection
 from .async_helper import _iorepeat
 from .file_templates import Links, learning_module_template
 from .ilias_html_cleaner import clean, insert_base_markup
-from .kit_ilias_html import (IliasElementType, IliasForumThread, IliasLearningModulePage, IliasPage,
-                             IliasPageElement, _sanitize_path_name, parse_ilias_forum_export)
+from .kit_ilias_html import (
+    IliasElementType,
+    IliasForumThread,
+    IliasLearningModulePage,
+    IliasPage,
+    IliasPageElement,
+    _sanitize_path_name,
+    parse_ilias_forum_export,
+)
 
 TargetType = Union[str, int]
 

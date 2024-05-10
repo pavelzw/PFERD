@@ -2,6 +2,7 @@ import asyncio
 import sys
 import traceback
 from contextlib import asynccontextmanager, contextmanager
+
 # TODO In Python 3.9 and above, ContextManager is deprecated
 from typing import AsyncIterator, ContextManager, Iterator, List, Optional
 
@@ -9,8 +10,15 @@ from rich.console import Console, Group
 from rich.live import Live
 from rich.markup import escape
 from rich.panel import Panel
-from rich.progress import (BarColumn, DownloadColumn, Progress, TaskID, TextColumn, TimeRemainingColumn,
-                           TransferSpeedColumn)
+from rich.progress import (
+    BarColumn,
+    DownloadColumn,
+    Progress,
+    TaskID,
+    TextColumn,
+    TimeRemainingColumn,
+    TransferSpeedColumn,
+)
 from rich.table import Column
 
 
