@@ -2,5 +2,4 @@
 
 set -e
 
-autopep8 --recursive --in-place PFERD
-isort PFERD
+ruff format

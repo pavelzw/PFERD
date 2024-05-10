@@ -2,5 +2,5 @@
 
 set -e
 
-mypy PFERD
-flake8 PFERD
+ruff check --fix
+mypy .
